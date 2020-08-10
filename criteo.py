@@ -83,7 +83,7 @@ def get_feature_count(input_file):
         for i in range(1, CRITEO.TOTAL_COLUMNS):
             # numerical columns
             if i < CRITEO.LABEL_COLUMN_INDEX+1:
-                line[i] = scale(line[i])
+                line[i] = scale_data(line[i])
             # count frequency    
             if line[i] not in count_freq[i]:
                 count_freq[i][line[i]] = 0
@@ -128,7 +128,7 @@ def generate_feature_map_and_train_csv(temp_file,
                 # map numerical features
                 if i < CRITEO.NUMERICAL_FEATS+1:
                     # scale the data 
-                    line[i] = scale(line[i])
+                    line[i] = scale_data(line[i])
                     output_line.append(line[i])
                 # handle categorical features
                 elif freq_dict[i][line[i]] < threshold:
@@ -178,7 +178,7 @@ def generate_valid_csv(eval_file,
             for i in range(1, CRITEO.TOTAL_COLUMNS):
                 if i < CRITEO.NUMERICAL_FEATS+1:
                     # scale the data
-                    line[i] = scale(line[i])
+                    line[i] = scale_data(line[i])
                     output_line.append(line[i])
                 elif line[i] in feature_map[i]:
                     output_line.append(feature_map[i][line[i]])
@@ -205,7 +205,7 @@ def main(args):
     eval_csv        =   os.path.join(args.save_path,'eval.csv')
     file_feature_map=   os.path.join(args.save_path,'criteo_feature_map.csv')
     # split the files
-    #random_split(train_file,temp_file,eval_file)
+    random_split(train_file,temp_file,eval_file)
     # get feature count 
     freq_dict=get_feature_count(train_file)
     # feature map and train.csv
@@ -215,12 +215,12 @@ def main(args):
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------    
 if __name__=='__main__':
-#-------------------------------------------------------------------------------------------------------------------------
+
     import argparse
     parser = argparse.ArgumentParser(description=colored('Preprocessing Script for Criteo DataSet :Sparse Deep Field Aware Factorization Machine','yellow'))
     # dataset name
     parser.add_argument("dataset_path", help=colored('/absolute/path/to/dac/folder/','green'))
     parser.add_argument("save_path", help=colored('/absolute/path/to/folder/where/.csv/and/other/files/wiil/be/saved/','green'))
     args = parser.parse_args()
-#--------------------------------------------------------------------------------------------------------------------------
+
     main(args)

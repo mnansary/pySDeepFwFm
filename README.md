@@ -55,15 +55,9 @@ N:B:[Image Source](https://www.kaggle.com/c/criteo-display-ad-challenge/data)
     * the **dataset_path** is the absolute path of the **dac** folder
     * if meromy on hardisk is not a problem keep the **save_path** same as **dataset_path**
 
-* **Routine**:
-    * **Splits The Dataset (train.txt) into evaluation and training file**
+**A Sample Execution log would look like this:**
 
-    > Takes around **5 min** time
-
-    * **Counts Feature Maps**: needed for creating **.csv** files for pipeline
-
-    > Takes around **15 min** time
-
+![](src_img/log.png?raw=true)
 
 **ENVIRONMENT**  
 
