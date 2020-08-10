@@ -98,25 +98,36 @@ def generate_feature_map_and_train_csv(temp_file,
                                        train_csv, 
                                        file_feature_map, 
                                        freq_dict, 
-                                       threshold=4):
+                                       threshold):
     '''
     create the train_csv and returns the feature map for validation csv
-
+    args:
+        temp_file           =   the train file split that we will use for training
+        tarin_csv           =   the file path for saving training data
+        file_feature_map    =   the feature map file that will help us evaluate
+        freq_dict           =   feature count dictionary
+        threshold           =   categorical feature handling with data count
+    returns:
+        feature_map         =   dictionary for feature map
     '''                                   
     feature_map = []
     
     for i in range(40):
         feature_map.append({})
     
-    with  open(train_csv, 'w') as fout:
+    start_time=time.time()
+    log_msg('Creating train.csv File','yellow')
     
+    with  open(train_csv, 'w') as fout:
         for line in tqdm(open(temp_file)):
+            # read line
             line = line.replace('\n', '').split('\t')
+            # label
             output_line = [line[0]]
-            for i in range(1, 40):
+            for i in range(1, CRITEO.TOTAL_COLUMNS):
                 # map numerical features
-                if i < 14:
-                    #line[i] = project_numeric(line[i])
+                if i < CRITEO.NUMERICAL_FEATS+1:
+                    # scale the data 
                     line[i] = scale(line[i])
                     output_line.append(line[i])
                 # handle categorical features
@@ -127,20 +138,57 @@ def generate_feature_map_and_train_csv(temp_file,
                 else:
                     output_line.append(str(len(feature_map[i]) + 1))
                     feature_map[i][line[i]] = str(len(feature_map[i]) + 1)
+            # write line
             output_line = ','.join(output_line)
-            
+            fout.write(output_line + '\n')
+    log_msg(f'train.csv !Time Taken:{round(time.time()-start_time,2)}s')
+    
 
+    start_time=time.time()
+    log_msg('Creating feature_map.csv File','yellow')
     # write feature_map file
-    f_map = open(file_feature_map, 'w')
-    for i in range(1, 40):
-        #only_one_zero_index = True
-        for feature in feature_map[i]:
-            #if feature_map[i][feature] == '0' and only_one_zero_index == False:
-            #    continue
-            f_map.write(str(i) + ',' + feature + ',' + feature_map[i][feature] + '\n')
-            #if only_one_zero_index == True and feature_map[i][feature] == '0':
-            #    only_one_zero_index = False
+    with  open(file_feature_map, 'w') as f_map: 
+        for i in range(1, CRITEO.TOTAL_COLUMNS):
+            for feature in feature_map[i]:
+                f_map.write(str(i) + ',' + feature + ',' + feature_map[i][feature] + '\n')
+    
+    log_msg(f'feature_map.csv done!Time Taken:{round(time.time()-start_time,2)}s')
+    
     return feature_map    
+#--------------------------------------------------------------------------------------------------------------------------------------------------
+def generate_valid_csv(eval_file,
+                        eval_csv, 
+                        feature_map):
+    '''
+    creates evaluation csv filr
+    args:
+        eval_file   =   splitted eval.txt file
+        eval_csv    =   csv file to save eval data
+        feature_map =   the feature map to generate valid evaluation data
+    '''
+    start_time=time.time()
+    log_msg('Creating eval.csv File','yellow')
+    
+    with  open(eval_csv, 'w') as fout:
+        for line in tqdm(open(eval_file)):
+            # read line
+            line = line.replace('\n', '').split('\t')
+            # label
+            output_line = [line[0]]
+            for i in range(1, CRITEO.TOTAL_COLUMNS):
+                if i < CRITEO.NUMERICAL_FEATS+1:
+                    # scale the data
+                    line[i] = scale(line[i])
+                    output_line.append(line[i])
+                elif line[i] in feature_map[i]:
+                    output_line.append(feature_map[i][line[i]])
+                else:
+                    output_line.append('0')
+            # write line
+            output_line = ','.join(output_line)
+            fout.write(output_line + '\n')
+
+    log_msg(f'eval.csv done!Time Taken:{round(time.time()-start_time,2)}s')
 #--------------------------------------------------------------------------------------------------------------------------------------------------
 def main(args):
     '''
@@ -150,13 +198,21 @@ def main(args):
     if not os.path.exists(args.save_path):
         os.mkdir(args.save_path)
     # file paths
-    train_file  =   os.path.join(args.dataset_path,'train.txt')
-    temp_file   =   os.path.join(args.save_path,'temp.txt')
-    eval_file   =   os.path.join(args.save_path,'eval.txt')
+    train_file      =   os.path.join(args.dataset_path,'train.txt')
+    temp_file       =   os.path.join(args.save_path,'temp.txt')
+    eval_file       =   os.path.join(args.save_path,'eval.txt')
+    train_csv       =   os.path.join(args.save_path,'train.csv')
+    eval_csv        =   os.path.join(args.save_path,'eval.csv')
+    file_feature_map=   os.path.join(args.save_path,'criteo_feature_map.csv')
     # split the files
     #random_split(train_file,temp_file,eval_file)
     # get feature count 
     freq_dict=get_feature_count(train_file)
+    # feature map and train.csv
+    feature_map = generate_feature_map_and_train_csv(temp_file,train_csv,file_feature_map,freq_dict,8)
+    # eval.csv
+    generate_valid_csv(eval_file,eval_csv, feature_map)
+
 #--------------------------------------------------------------------------------------------------------------------------------------------------    
 if __name__=='__main__':
 #-------------------------------------------------------------------------------------------------------------------------
