@@ -3,17 +3,37 @@ DeepFwFM Code porting for Criteo and Avazu
 
         Version: 0.0.1   
         Author : Md. Nazmuddoha Ansary
-                  
+
+![](src_img/python.ico?raw=true)
+
 # Version and Requirements
-* Python == 3.6.8
-> Create a Virtualenv and *pip3 install -r requirements.txt*
+* Python == 3.6.9
+* pip    == 20.2.1
+
+### Qucik Setup 
+* install virtualenv if not present
+* Create a Virtual environment: ```$virtualenv ctrenv``` 
+
+> *(the name ctrenv is completely random, I am using this name and its already added in **.gitignore** for converience)* 
+
+* install the requirements:```pip3 install -r requirements.txt```
 
 #  DataSet
 
-### Criteo
+## Criteo
 
 1. Download [Criteo CTR DataSet From Here](http://labs.criteo.com/2014/02/download-kaggle-display-advertising-challenge-dataset/)    
 2. Extract the **dac.tar.gz** and keep a note of the absolute path of the **dac** folder       
+
+### **Issues**:
+1. Huge Data Volume ( **~11.1 GiB**): not really recommended to open with pandas 
+2. Missing Feature attributes: The semantic of the features is undisclosed.Meaning we dont have the column names to find similiar features.
+
+
+![](src_img/ci1.png?raw=true)
+
+
+N:B:[Image Source](https://www.kaggle.com/c/criteo-display-ad-challenge/data)
 
 #  Preprocessing
 * **clear_mem.sh (Ubuntu/Linux)**:The complete preprocessing may take huge time and also cause to crash the system due to high memory useage. A way around is built for **Ubuntu** users is to run **sudo ./clear_mem.sh** in parallel with **criteo.py**

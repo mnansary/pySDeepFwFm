@@ -64,7 +64,6 @@ def random_split(train_file,temp_file,eval_file):
 
     log_msg(f'Spliting Done!Time Taken:{round(time.time()-start_time,2)}s')
 #--------------------------------------------------------------------------------------------------------------------------------------------------
-
 def get_feature_count(input_file):
     '''
     '''
@@ -94,6 +93,54 @@ def get_feature_count(input_file):
     log_msg(f'Feature Count Done!Time Taken:{round(time.time()-start_time,2)}s')
     
     return count_freq
+#--------------------------------------------------------------------------------------------------------------------------------------------------
+def generate_feature_map_and_train_csv(temp_file, 
+                                       train_csv, 
+                                       file_feature_map, 
+                                       freq_dict, 
+                                       threshold=4):
+    '''
+    create the train_csv and returns the feature map for validation csv
+
+    '''                                   
+    feature_map = []
+    
+    for i in range(40):
+        feature_map.append({})
+    
+    with  open(train_csv, 'w') as fout:
+    
+        for line in tqdm(open(temp_file)):
+            line = line.replace('\n', '').split('\t')
+            output_line = [line[0]]
+            for i in range(1, 40):
+                # map numerical features
+                if i < 14:
+                    #line[i] = project_numeric(line[i])
+                    line[i] = scale(line[i])
+                    output_line.append(line[i])
+                # handle categorical features
+                elif freq_dict[i][line[i]] < threshold:
+                    output_line.append('0')
+                elif line[i] in feature_map[i]:
+                    output_line.append(feature_map[i][line[i]])
+                else:
+                    output_line.append(str(len(feature_map[i]) + 1))
+                    feature_map[i][line[i]] = str(len(feature_map[i]) + 1)
+            output_line = ','.join(output_line)
+            
+
+    # write feature_map file
+    f_map = open(file_feature_map, 'w')
+    for i in range(1, 40):
+        #only_one_zero_index = True
+        for feature in feature_map[i]:
+            #if feature_map[i][feature] == '0' and only_one_zero_index == False:
+            #    continue
+            f_map.write(str(i) + ',' + feature + ',' + feature_map[i][feature] + '\n')
+            #if only_one_zero_index == True and feature_map[i][feature] == '0':
+            #    only_one_zero_index = False
+    return feature_map    
 #--------------------------------------------------------------------------------------------------------------------------------------------------
 def main(args):
     '''
